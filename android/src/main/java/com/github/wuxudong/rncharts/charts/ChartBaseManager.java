@@ -1,6 +1,7 @@
 package com.github.wuxudong.rncharts.charts;
 
 import android.content.res.ColorStateList;
+import android.graphics.Typeface;
 import android.os.Build;
 import android.view.View;
 
@@ -28,6 +29,7 @@ import com.github.mikephil.charting.highlight.Highlight;
 import com.github.wuxudong.rncharts.data.DataExtract;
 import com.github.wuxudong.rncharts.markers.RNRectangleMarkerView;
 import com.github.wuxudong.rncharts.markers.RNCircleMarkerView;
+import com.github.wuxudong.rncharts.markers.RNRectangleSwyftxView;
 import com.github.wuxudong.rncharts.utils.BridgeUtils;
 import com.github.wuxudong.rncharts.utils.EasingFunctionHelper;
 import com.github.wuxudong.rncharts.utils.TypefaceUtils;
@@ -281,11 +283,18 @@ public abstract class ChartBaseManager<T extends Chart, U extends Entry> extends
 
                 break;
             default:
-                markerView = rectangleMarker(chart, propMap);
+                 markerView = swyftxMarker(chart, propMap);
+//                markerView = rectangleMarker(chart, propMap);
         }
 
         markerView.setChartView(chart);
         chart.setMarker(markerView);
+    }
+
+    private RNRectangleSwyftxView swyftxMarker(Chart chart, ReadableMap propMap) {
+        RNRectangleSwyftxView marker = new RNRectangleSwyftxView(chart.getContext());
+        setSwyftxMarkerParams(marker, propMap);
+        return marker;
     }
 
     private RNRectangleMarkerView rectangleMarker(Chart chart, ReadableMap propMap) {
@@ -297,6 +306,50 @@ public abstract class ChartBaseManager<T extends Chart, U extends Entry> extends
     private RNCircleMarkerView circleMarker(Chart chart) {
         return new RNCircleMarkerView(chart.getContext());
     }
+
+    private void setSwyftxMarkerParams(RNRectangleSwyftxView marker, ReadableMap propMap) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
+                BridgeUtils.validate(propMap, ReadableType.Number, "markerColor")) {
+            marker.getPrimaryTv().setBackgroundTintList(ColorStateList.valueOf(propMap.getInt("markerColor")));
+            marker.getContainer().setBackgroundTintList(ColorStateList.valueOf(propMap.getInt("markerColor")));
+        }
+
+        if (BridgeUtils.validate(propMap, ReadableType.Number, "digits")) {
+            marker.setDigits(propMap.getInt("digits"));
+        }
+
+        if (BridgeUtils.validate(propMap, ReadableType.Number, "primaryColor")) {
+            marker.getPrimaryTv().setTextColor(propMap.getInt("primaryColor"));
+            marker.getPrimaryTv().setTypeface(null, Typeface.BOLD);
+        }
+        if (BridgeUtils.validate(propMap, ReadableType.Number, "secondaryColor")) {
+            marker.getSecondaryTv().setTextColor(propMap.getInt("secondaryColor"));
+        }
+        if (BridgeUtils.validate(propMap, ReadableType.Number, "textSize")) {
+            marker.getPrimaryTv().setTextSize(propMap.getInt("textSize"));
+            marker.getSecondaryTv().setTextSize(propMap.getInt("textSize"));
+        }
+
+        if (BridgeUtils.validate(propMap, ReadableType.String, "textAlign")) {
+            int alignment = View.TEXT_ALIGNMENT_CENTER;
+            switch (propMap.getString("textAlign")) {
+                case "left":
+                    alignment = View.TEXT_ALIGNMENT_TEXT_START;
+                    break;
+                case "center":
+                    alignment = View.TEXT_ALIGNMENT_CENTER;
+                    break;
+                case "right":
+                    alignment = View.TEXT_ALIGNMENT_TEXT_END;
+                    break;
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                // Disable for Swyftx marker for now
+//                marker.getTvContent().setTextAlignment(alignment);
+            }
+        }
+    }
+
 
     private void setMarkerParams(RNRectangleMarkerView marker, ReadableMap propMap) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
